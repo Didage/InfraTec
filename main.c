@@ -120,8 +120,8 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 				claveLocal = copy(claveBinaria, claveLocal);
 			}
 
-			if(offset!=0) {
-				claveAux = claveAux >> (tamanhoClave-((8%tamanhoClave)-offset));
+			if(8%tamanhoClave!=0) {
+				claveAux = claveAux >> (tamanhoClave-((8%tamanhoClave)+offset));
 				claveLocal = copy(claveAux, claveLocal);
 			}
 
