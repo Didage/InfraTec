@@ -109,41 +109,33 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 
 		int offset = 0;
 
-		//construye un arreglo de carateres con la porción de clave correcta segun cada carater del mensaje y lo almacena en claveCompilada
 		for (int i = 0; i < tamanhoArchivoLectura; i++)	{
-
-			// caracter vacío donde se contruye el caracter con la porción de la clave correspondiente al carater i del mensaje
 			unsigned char claveLocal = '\0';
 			unsigned char claveAux = claveBinaria;
 
-			// Copia al comienzo los dígitos binarios que se descuadra por el tamaño de la clave
 			claveLocal = append(offset, claveAux, claveLocal);
 
-			// Copia la clave tantas veces cabe en 
 			for (int j = 0; j < 8/tamanhoClave; j++) {
 				claveLocal = copy(claveBinaria, claveLocal);
 			}
 
-			// Copia la porción desfazada de la clave al final de lo que se lleva
 			if(8%tamanhoClave!=0) {
 				claveAux = claveAux >> (tamanhoClave-((8%tamanhoClave)+offset));
 				claveLocal = copy(claveAux, claveLocal);
 			}
 
-			// Lleva la cuenta del desfase en las claves
+
 			if(8%tamanhoClave!=0) {
 				offset++;
 				offset = offset%tamanhoClave;
 			}
 
-			// Asigna el caracter
 			(*iteradorSobreCompilada) = claveLocal;
 			iteradorSobreCompilada++;
 		}
 
 	}
 
-	// Lo mismo, pero en el caso en que la clave tiene tamaño mayor a 8
 	if(tamanhoClave>8) {
 
 		int offset = 0;
@@ -153,7 +145,6 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 			unsigned short claveLocal = 0;
 			unsigned short claveAux = claveBinaria;
 
-			// En este caso los desfases van multiplicados por cuanto sobrepasa el tamaño de char (variable diff)
 			claveLocal = appendShort((offset*diff)%tamanhoClave, claveAux, claveLocal);
 
 			for (int j = 0; j < 16/tamanhoClave; j++) {
@@ -176,7 +167,6 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 			iteradorSobreCompilada++;
 		}
 
-		// Se agrega el último char en caso de claves con longitud inpar
 		if(tamanhoArchivoLectura%2!=0) {
 			offset = 0;
 			unsigned short claveLocal = 0;
@@ -199,7 +189,6 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 
 	}
 
-	// En el caso en que la clave tiene tamaño 8 se crea el vector directamente
 	if (tamanhoClave==8) {
 		for (int i = 0; i < tamanhoArchivoLectura; i++) {
 			(*iteradorSobreCompilada) = (unsigned char)claveBinaria;
@@ -207,7 +196,6 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 		}
 	}
 
-	// Aplica el XOR con cada char de la información leída con respecto al arreglo 
 	for (int i = 0; i < tamanhoArchivoLectura; ++i) {
 		(*informacionEscrita) = (*informacionLeida)^(*claveCompilada);
 		informacionLeida++;
