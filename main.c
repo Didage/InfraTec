@@ -3,9 +3,9 @@ PROYECTO 1 FUNDAMENTOS DE INFRAESTRUCTURA TECNOLOGICA - 201610
 */
 
 //Presentado por:
-//	Juan David Guzman 
-//	Diego Alejandro Tovar
-//	Juan M. Lovera
+//	Juan David Guzman jd.guzman10@uniandes.edu.co 201224442
+//	Diego Alejandro Tovar da.tovar10@uniandes.edu.co 201512531
+//	Juan M. Lovera jma.lovera10@uniandes.edu.co 201424442
 
 #include "stdlib.h"
 #include "stdio.h"
