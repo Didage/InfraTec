@@ -26,6 +26,10 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado, unsigned short claveBinaria, i
 unsigned char append(int offset, unsigned short origen, unsigned char destino);
 unsigned char copy(unsigned short aCopiar, unsigned char destino);
 
+unsigned short appendShort(int offset, unsigned short origen, unsigned short destino);
+unsigned short copyShort(unsigned short aCopiar, unsigned short destino);
+unsigned char getCharFromShort(int index, unsigned short origen);
+
 
 int main(int argc, char* argv[])
 {
@@ -100,13 +104,10 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 	unsigned char * informacionEscrita = (*resultado).informacion;
 
 	unsigned char * claveCompilada = (unsigned char*)malloc(tamanhoArchivoLectura);
-
+	unsigned char * iteradorSobreCompilada = claveCompilada;
 	// Para Claves menores a 8 bits
 
 	if(tamanhoClave<8) {
-
-		
-		unsigned char * iteradorSobreCompilada = claveCompilada;
 
 		int offset = 0;
 
@@ -137,6 +138,66 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 
 	}
 
+	if(tamanhoClave>8) {
+
+		int offset = 0;
+		int diff = tamanhoClave-8;
+
+		for (int i = 0; i < tamanhoArchivoLectura/2; i++)	{
+			unsigned short claveLocal = 0;
+			unsigned short claveAux = claveBinaria;
+
+			claveLocal = appendShort((offset*diff)%tamanhoClave, claveAux, claveLocal);
+
+			for (int j = 0; j < 16/tamanhoClave; j++) {
+				claveLocal = copyShort(claveBinaria, claveLocal);
+			}
+
+			claveAux = claveAux >> (tamanhoClave-((16%tamanhoClave)+((offset*diff)%tamanhoClave)));
+			claveLocal = copyShort(claveAux, claveLocal);
+
+			offset++;
+			offset = offset%tamanhoClave;
+
+			unsigned char primerChar = getCharFromShort(0,claveLocal);
+			unsigned char segundoChar = getCharFromShort(1,claveLocal);
+
+			(*iteradorSobreCompilada) = primerChar;
+			iteradorSobreCompilada++;
+
+			(*iteradorSobreCompilada) = segundoChar;
+			iteradorSobreCompilada++;
+		}
+
+		if(tamanhoArchivoLectura%2!=0) {
+			offset = 0;
+			unsigned short claveLocal = 0;
+			unsigned short claveAux = claveBinaria;
+
+			claveLocal = appendShort((offset*diff)%tamanhoClave, claveAux, claveLocal);
+
+			for (int j = 0; j < 16/tamanhoClave; j++) {
+				claveLocal = copyShort(claveBinaria, claveLocal);
+			}
+
+			claveAux = claveAux >> (tamanhoClave-((16%tamanhoClave)+((offset*diff)%tamanhoClave)));
+			claveLocal = copyShort(claveAux, claveLocal);
+
+			unsigned char primerChar = getCharFromShort(0,claveLocal);
+
+			(*iteradorSobreCompilada) = primerChar;
+			iteradorSobreCompilada++;
+		}
+
+	}
+
+	if (tamanhoClave==8) {
+		for (int i = 0; i < tamanhoArchivoLectura; i++) {
+			(*iteradorSobreCompilada) = (unsigned char)claveBinaria;
+			iteradorSobreCompilada++;
+		}
+	}
+
 	for (int i = 0; i < tamanhoArchivoLectura; ++i) {
 		(*informacionEscrita) = (*informacionLeida)^(*claveCompilada);
 		informacionLeida++;
@@ -144,6 +205,41 @@ void codificar(ARCHIVO *arch, ARCHIVO *resultado,  unsigned short claveBinaria, 
 		claveCompilada++;
 	}
 
+}
+
+/*
+* Procedimiento para obtener la mitades de un short como chars
+*/
+unsigned char getCharFromShort(int index, unsigned short origen) {
+	if (index)
+	{
+		origen = origen << 8;
+		origen = origen >> 8;
+		return (unsigned char) origen;
+	}
+	origen = origen >> 8;
+	return (unsigned char) origen;
+}
+
+/*
+* Procedimiento para poner partes de la clave al comienzo de una clave rotada. Esto es usado para contruir la clave bit a bit cuando tiene longitud mayor a 8 bits
+*/
+unsigned short appendShort(int offset, unsigned short origen, unsigned short destino) {
+	if(offset==0){return destino;}
+	unsigned short construible = origen;
+	construible = construible << (16-offset);
+	construible = construible >> (16-offset);
+	destino = destino | construible;
+	return destino;
+}
+
+/*
+* Procedimiento copia los bits en aCopiar en el destino conservando lo que el destino tiene mientras a copiar no tenga un tamaño mayor; version para shorts
+*/
+unsigned short copyShort(unsigned short aCopiar, unsigned short destino) {
+	destino = destino << obtenerNumBits(aCopiar);
+	destino = destino |  aCopiar;
+	return destino;
 }
 
 /*
